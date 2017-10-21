@@ -15,6 +15,15 @@ impl Grid {
         }
     }
 
+    pub fn get_grid(&self) -> &[Vec<bool>] {
+        self.grid.as_slice()
+    }
+
+    pub fn clear(&mut self) -> &mut Self {
+        *self = Grid::new(self.width, self.height);
+        self
+    }
+
     pub fn randomize(&mut self) -> &mut Self {
         for y in 0..self.height {
             for x in 0..self.width {
@@ -50,9 +59,8 @@ impl Grid {
         }
     }
 
-    pub fn neighbors(&self, x: usize, y: usize) -> usize {
+    fn neighbors(&self, x: usize, y: usize) -> usize {
         let mut neighbors = Vec::new();
-        let mut sides = 0;
 
         if x > 0 && y > 0 {
             neighbors.push(self.get(x - 1, y - 1));
