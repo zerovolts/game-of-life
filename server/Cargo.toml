@@ -1,0 +1,7 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors = ["Zach Stone <hexaphixylix@yahoo.com>"]
+
+[dependencies]
+rand = "0.3.17"
