@@ -64,28 +64,38 @@ impl Grid {
 
         if x > 0 && y > 0 {
             neighbors.push(self.get(x - 1, y - 1));
+            //if self.get(x - 1, y - 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x > 0 {
             neighbors.push(self.get(x - 1, y));
+            //if self.get(x - 1, y).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x > 0 && y < self.height {
             neighbors.push(self.get(x - 1, y + 1));
+            //if self.get(x - 1, y + 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if y > 0 {
             neighbors.push(self.get(x, y - 1));
+            //if self.get(x, y - 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if y < self.height {
             neighbors.push(self.get(x, y + 1));
+            //if self.get(x, y + 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x < self.width && y > 0 {
             neighbors.push(self.get(x + 1, y - 1));
+            //if self.get(x + 1, y - 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x < self.width {
             neighbors.push(self.get(x + 1, y));
+            //if self.get(x + 1, y).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x < self.width && y < self.height {
             neighbors.push(self.get(x + 1, y + 1));
+            //if self.get(x + 1, y + 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
+        println!();
+        //println!("{:?}", neighbors);
 
         neighbors.iter()
             .map(|x| x.unwrap_or(false))
@@ -93,22 +103,53 @@ impl Grid {
             .count()
     }
 
+    pub fn should_live(&self, x: usize, y: usize) -> Option<bool> {
+        let value = self.get(x, y).unwrap();
+        let neighbors = self.neighbors(x, y);
+        //print!("{} ", neighbors);
+
+        if value && (neighbors < 2 || neighbors > 3) {
+            Some(false)
+        } else if !value && neighbors == 3 {
+            Some(true)
+        } else {
+            // stay as is
+            None
+        }
+    }
+
+    fn should_live_vn(value: bool, neighbors: usize) -> Option<bool> {
+        if value && (neighbors < 2 || neighbors > 3) {
+            Some(false)
+        } else if !value && neighbors == 3 {
+            Some(true)
+        } else {
+            // stay as is
+            None
+        }
+    }
+
     pub fn step_mut(&mut self) -> &mut Self {
         for y in 0..self.height {
             for x in 0..self.width {
-                let neighbors = self.neighbors(x, y);
-
-                if self.get(x, y).unwrap() {
-                    if neighbors < 2 || neighbors > 3 {
-                        self.set_mut(x, y, false);
-                    }
-                } else if neighbors == 3 {
-                    self.set_mut(x, y, true);
-                }
-                //print!("{} ", neighbors);
+                let result = match self.should_live(x, y) {
+                    Some(true) => self.set_mut(x, y, true),
+                    Some(false) => self.set_mut(x, y, false),
+                    None => Err("pass through"),
+                };
             }
-            //println!();
+            println!();
         }
+        println!();
+
+        // println!("start");
+        // for y in 0..self.height {
+        //     for x in 0..self.width {
+        //         print!("{} ", if self.get(x, y).unwrap() {1} else {0});
+        //     }
+        //     println!();
+        // }
+        // println!();
         self
     }
 
@@ -125,5 +166,88 @@ impl Grid {
                 //break;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gets_correct_field() {
+        let mut grid = Grid::new(4, 4);
+        assert!(grid.get(2, 2) == Some(false));
+        grid.set_mut(2, 2, true);
+        assert!(grid.get(2, 2) == Some(true));
+    }
+
+    #[test]
+    fn cannot_get_out_of_bounds() {
+        let mut grid = Grid::new(4, 4);
+        println!("{:?}", grid.get(2, 2));
+        assert!(grid.get(2, 2) == Some(false));
+        assert!(grid.get(4, 0) == None);
+        assert!(grid.get(0, 4) == None);
+    }
+
+    #[test]
+    fn correct_neighbors() {
+        let mut grid = Grid::new(5, 5);
+        assert!(grid.neighbors(2, 2) == 0);
+        grid.set_mut(1, 1, true);
+        assert!(grid.neighbors(2, 2) == 1);
+        grid.set_mut(2, 1, true);
+        assert!(grid.neighbors(2, 2) == 2);
+        grid.set_mut(3, 1, true);
+        assert!(grid.neighbors(2, 2) == 3);
+        grid.set_mut(1, 2, true);
+        assert!(grid.neighbors(2, 2) == 4);
+        grid.set_mut(3, 2, true);
+        assert!(grid.neighbors(2, 2) == 5);
+        grid.set_mut(1, 3, true);
+        assert!(grid.neighbors(2, 2) == 6);
+        grid.set_mut(2, 3, true);
+        assert!(grid.neighbors(2, 2) == 7);
+        grid.set_mut(3, 3, true);
+        assert!(grid.neighbors(2, 2) == 8);
+    }
+
+    #[test]
+    fn alive_should_live() {
+        let mut grid = Grid::new(5, 5);
+        grid.set_mut(2, 2, true);
+        grid.set_mut(1, 3, true);
+        grid.set_mut(3, 3, true);
+        assert!(grid.should_live(2, 2) == None);
+        assert!(Grid::should_live_vn(true, 2) == None);
+        assert!(Grid::should_live_vn(true, 3) == None);
+    }
+
+    #[test]
+    fn alive_should_die() {
+        assert!(Grid::should_live_vn(true, 0) == Some(false));
+        assert!(Grid::should_live_vn(true, 1) == Some(false));
+        assert!(Grid::should_live_vn(true, 4) == Some(false));
+        assert!(Grid::should_live_vn(true, 5) == Some(false));
+        assert!(Grid::should_live_vn(true, 6) == Some(false));
+        assert!(Grid::should_live_vn(true, 7) == Some(false));
+        assert!(Grid::should_live_vn(true, 8) == Some(false));
+    }
+
+    #[test]
+    fn dead_should_live() {
+        assert!(Grid::should_live_vn(false, 3) == Some(true));
+    }
+
+    #[test]
+    fn dead_should_die() {
+        assert!(Grid::should_live_vn(false, 0) == None);
+        assert!(Grid::should_live_vn(false, 1) == None);
+        assert!(Grid::should_live_vn(false, 2) == None);
+        assert!(Grid::should_live_vn(false, 4) == None);
+        assert!(Grid::should_live_vn(false, 5) == None);
+        assert!(Grid::should_live_vn(false, 6) == None);
+        assert!(Grid::should_live_vn(false, 7) == None);
+        assert!(Grid::should_live_vn(false, 8) == None);
     }
 }

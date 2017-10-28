@@ -1,8 +1,10 @@
 #[macro_use] extern crate nickel;
 #[macro_use] extern crate serde_json;
+extern crate hyper;
 
 use nickel::{Nickel, HttpRouter};
 use std::sync::{Arc, Mutex};
+use hyper::header::{AccessControlAllowOrigin};
 
 mod grid;
 use grid::Grid;
@@ -10,7 +12,8 @@ use grid::Grid;
 fn handle_clear(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/new", middleware! {
+    server.post("/clear", middleware! { |request, mut response|
+        response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().clear();
         "cleared!"
     });
@@ -19,7 +22,8 @@ fn handle_clear(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_set(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/:x/:y", middleware! { |request|
+    server.post("/:x/:y", middleware! { |request, mut response|
+        response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().set_mut(
             request.param("x").unwrap().parse().unwrap(),
             request.param("y").unwrap().parse().unwrap(),
@@ -33,7 +37,8 @@ fn handle_set(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_get(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.get("/:x/:y", middleware! { |request|
+    server.get("/:x/:y", middleware! { |request, mut response|
+        response.set(AccessControlAllowOrigin::Any);
         json!({
             "value": grid_clone.lock().unwrap().get(
                 request.param("x").unwrap().parse().unwrap(),
@@ -46,7 +51,8 @@ fn handle_get(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_step(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/step", middleware! { |request|
+    server.post("/step", middleware! { |request, mut response|
+        response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().step_mut();
         "stepped!"
     });
@@ -55,7 +61,8 @@ fn handle_step(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_randomize(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/randomize", middleware! { |request|
+    server.post("/randomize", middleware! { |request, mut response|
+        response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().randomize();
         "radomized!"
     });
@@ -64,18 +71,26 @@ fn handle_randomize(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_show(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.get("/", middleware! { |request|
+    server.get("/", middleware! { |request, mut response|
+        response.set(AccessControlAllowOrigin::Any);
         let grid_slice = json!(grid_clone.lock().unwrap().get_grid());
         format!("{}", grid_slice)
     });
 }
 
 fn main() {
-    let mut grid = Arc::new(Mutex::new(Grid::new(4, 4)));
+    let mut grid = Arc::new(Mutex::new(Grid::new(16, 16)));
+    grid.lock().unwrap().set_mut(7, 6, true);
+    grid.lock().unwrap().set_mut(7, 7, true);
+    grid.lock().unwrap().set_mut(7, 8, true);
+    grid.lock().unwrap().set_mut(6, 8, true);
+    grid.lock().unwrap().set_mut(5, 7, true);
+    grid.lock().unwrap().step_mut();
     //grid.lock().unwrap().randomize();
     //grid.lock().unwrap().run();
 
     let mut server = Nickel::new();
+
     handle_clear(&mut server, &mut grid);
     handle_set(&mut server, &mut grid);
     handle_get(&mut server, &mut grid);
@@ -83,5 +98,5 @@ fn main() {
     handle_randomize(&mut server, &mut grid);
     handle_show(&mut server, &mut grid);
 
-    server.listen("localhost:3000");
+    server.listen("localhost:4000");
 }

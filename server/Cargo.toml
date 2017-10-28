@@ -6,4 +6,5 @@ authors = ["Zach Stone <hexaphixylix@yahoo.com>"]
 [dependencies]
 rand = "0.3.17"
 nickel = "*"
+hyper = "*"
 serde_json = "1.0"
