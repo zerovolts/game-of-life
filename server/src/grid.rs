@@ -15,6 +15,14 @@ impl Grid {
         }
     }
 
+    pub fn clone(&self) -> Grid {
+        Grid {
+            width: self.width,
+            height: self.height,
+            grid: self.grid.to_vec()
+        }
+    }
+
     pub fn get_grid(&self) -> &[Vec<bool>] {
         self.grid.as_slice()
     }
@@ -130,9 +138,11 @@ impl Grid {
     }
 
     pub fn step_mut(&mut self) -> &mut Self {
+        let clone = self.clone();
+
         for y in 0..self.height {
             for x in 0..self.width {
-                let result = match self.should_live(x, y) {
+                let result = match clone.should_live(x, y) {
                     Some(true) => self.set_mut(x, y, true),
                     Some(false) => self.set_mut(x, y, false),
                     None => Err("pass through"),
@@ -249,5 +259,16 @@ mod tests {
         assert!(Grid::should_live_vn(false, 6) == None);
         assert!(Grid::should_live_vn(false, 7) == None);
         assert!(Grid::should_live_vn(false, 8) == None);
+    }
+
+    #[test]
+    fn clone_should_create_copy() {
+        let mut grid = Grid::new(3, 3);
+        grid.set_mut(1, 1, true);
+        let mut grid_clone = grid.clone();
+        grid.set_mut(0, 2, true);
+
+        assert!(grid.get(1, 1) == grid_clone.get(1, 1));
+        assert!(grid.get(0, 2) != grid_clone.get(0, 2));
     }
 }
