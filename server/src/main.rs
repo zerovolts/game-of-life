@@ -12,7 +12,7 @@ use grid::Grid;
 fn handle_clear(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/clear", middleware! { |request, mut response|
+    server.post("/clear", middleware! { |_, mut response|
         response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().clear();
         "cleared!"
@@ -29,7 +29,6 @@ fn handle_set(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
             request.param("y").unwrap().parse().unwrap(),
             true
         );
-        //grid_clone.lock().unwrap().print();
         "set!"
     });
 }
@@ -51,7 +50,7 @@ fn handle_get(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_step(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/step", middleware! { |request, mut response|
+    server.post("/step", middleware! { |_, mut response|
         response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().step_mut();
         "stepped!"
@@ -61,7 +60,7 @@ fn handle_step(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_randomize(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.post("/randomize", middleware! { |request, mut response|
+    server.post("/randomize", middleware! { |_, mut response|
         response.set(AccessControlAllowOrigin::Any);
         grid_clone.lock().unwrap().randomize();
         "radomized!"
@@ -71,7 +70,7 @@ fn handle_randomize(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 fn handle_show(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
     let grid_clone = grid.clone();
 
-    server.get("/", middleware! { |request, mut response|
+    server.get("/", middleware! { |_, mut response|
         response.set(AccessControlAllowOrigin::Any);
         let grid_slice = json!(grid_clone.lock().unwrap().get_grid());
         format!("{}", grid_slice)
@@ -80,15 +79,6 @@ fn handle_show(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 
 fn main() {
     let mut grid = Arc::new(Mutex::new(Grid::new(16, 16)));
-    grid.lock().unwrap().set_mut(7, 6, true);
-    grid.lock().unwrap().set_mut(7, 7, true);
-    grid.lock().unwrap().set_mut(7, 8, true);
-    grid.lock().unwrap().set_mut(6, 8, true);
-    grid.lock().unwrap().set_mut(5, 7, true);
-    grid.lock().unwrap().step_mut();
-    //grid.lock().unwrap().randomize();
-    //grid.lock().unwrap().run();
-
     let mut server = Nickel::new();
 
     handle_clear(&mut server, &mut grid);

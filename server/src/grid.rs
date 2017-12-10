@@ -1,9 +1,20 @@
 extern crate rand;
+use std::clone::Clone;
 
 pub struct Grid {
     width: usize,
     height: usize,
     grid: Vec<Vec<bool>>
+}
+
+impl Clone for Grid {
+    fn clone(&self) -> Grid {
+        Grid {
+            width: self.width,
+            height: self.height,
+            grid: self.grid.to_vec()
+        }
+    }
 }
 
 impl Grid {
@@ -12,14 +23,6 @@ impl Grid {
             width: width,
             height: height,
             grid: vec![vec![false; width]; height]
-        }
-    }
-
-    pub fn clone(&self) -> Grid {
-        Grid {
-            width: self.width,
-            height: self.height,
-            grid: self.grid.to_vec()
         }
     }
 
@@ -35,7 +38,10 @@ impl Grid {
     pub fn randomize(&mut self) -> &mut Self {
         for y in 0..self.height {
             for x in 0..self.width {
-                self.set_mut(x, y, rand::random());
+                match self.set_mut(x, y, rand::random()) {
+                    Ok(_) => (),
+                    Err(message) => println!("Error: {}", message),
+                };
             }
         }
         self
@@ -72,38 +78,28 @@ impl Grid {
 
         if x > 0 && y > 0 {
             neighbors.push(self.get(x - 1, y - 1));
-            //if self.get(x - 1, y - 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x > 0 {
             neighbors.push(self.get(x - 1, y));
-            //if self.get(x - 1, y).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x > 0 && y < self.height {
             neighbors.push(self.get(x - 1, y + 1));
-            //if self.get(x - 1, y + 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if y > 0 {
             neighbors.push(self.get(x, y - 1));
-            //if self.get(x, y - 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if y < self.height {
             neighbors.push(self.get(x, y + 1));
-            //if self.get(x, y + 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x < self.width && y > 0 {
             neighbors.push(self.get(x + 1, y - 1));
-            //if self.get(x + 1, y - 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x < self.width {
             neighbors.push(self.get(x + 1, y));
-            //if self.get(x + 1, y).unwrap_or(false) {print!("1")} else {print!("0")}
         }
         if x < self.width && y < self.height {
             neighbors.push(self.get(x + 1, y + 1));
-            //if self.get(x + 1, y + 1).unwrap_or(false) {print!("1")} else {print!("0")}
         }
-        println!();
-        //println!("{:?}", neighbors);
 
         neighbors.iter()
             .map(|x| x.unwrap_or(false))
@@ -114,16 +110,8 @@ impl Grid {
     pub fn should_live(&self, x: usize, y: usize) -> Option<bool> {
         let value = self.get(x, y).unwrap();
         let neighbors = self.neighbors(x, y);
-        //print!("{} ", neighbors);
 
-        if value && (neighbors < 2 || neighbors > 3) {
-            Some(false)
-        } else if !value && neighbors == 3 {
-            Some(true)
-        } else {
-            // stay as is
-            None
-        }
+        Grid::should_live_vn(value, neighbors)
     }
 
     fn should_live_vn(value: bool, neighbors: usize) -> Option<bool> {
@@ -142,24 +130,13 @@ impl Grid {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let result = match clone.should_live(x, y) {
+                match clone.should_live(x, y) {
                     Some(true) => self.set_mut(x, y, true),
                     Some(false) => self.set_mut(x, y, false),
                     None => Err("pass through"),
                 };
             }
-            println!();
         }
-        println!();
-
-        // println!("start");
-        // for y in 0..self.height {
-        //     for x in 0..self.width {
-        //         print!("{} ", if self.get(x, y).unwrap() {1} else {0});
-        //     }
-        //     println!();
-        // }
-        // println!();
         self
     }
 
