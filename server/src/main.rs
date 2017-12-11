@@ -78,7 +78,7 @@ fn handle_show(server: &mut Nickel, grid: &mut Arc<Mutex<Grid>>) {
 }
 
 fn main() {
-    let mut grid = Arc::new(Mutex::new(Grid::new(16, 16)));
+    let mut grid = Arc::new(Mutex::new(Grid::new(64, 64)));
     let mut server = Nickel::new();
 
     handle_clear(&mut server, &mut grid);
