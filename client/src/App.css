@@ -1,3 +1,7 @@
+body {
+  font-family: Ubuntu;
+}
+
 .App {
   text-align: center;
 }
@@ -34,10 +38,10 @@
 }
 
 .cell {
-  width: 32px;
-  height: 32px;
-  margin-right: 1px;
-  margin-bottom: 1px;
+  width: 8px;
+  height: 8px;
+  margin-right: 0px;
+  margin-bottom: 0px;
 }
 
 .alive {
@@ -46,4 +50,14 @@
 
 .dead {
   background: #444;
+}
+
+button {
+  background: #3498db;
+  color: white;
+  font-family: Ubuntu;
+  padding: 0.8em;
+  margin: 0.4em;
+  border: none;
+  border-radius: 0.3em;
 }

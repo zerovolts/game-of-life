@@ -5,7 +5,8 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      grid: [[]]
+      grid: [[]],
+      interval: null
     }
 
     this.fetchGrid = this.fetchGrid.bind(this)
@@ -15,6 +16,8 @@ class App extends Component {
     this.fetchGlider = this.fetchGlider.bind(this)
     this.fetchReload = this.fetchReload.bind(this)
     this.fetchSet = this.fetchSet.bind(this)
+    this.runSimulation = this.runSimulation.bind(this)
+    this.stopSimulation = this.stopSimulation.bind(this)
   }
 
   fetchGlider() {
@@ -23,6 +26,18 @@ class App extends Component {
     this.fetchSet(7, 8)
     this.fetchSet(6, 8)
     this.fetchSet(5, 7)
+  }
+
+  stopSimulation() {
+    clearInterval(this.state.interval)
+  }
+
+  runSimulation() {
+    this.stopSimulation()
+
+    this.setState({
+      interval: setInterval(this.fetchStep, 200)
+    })
   }
 
   fetchReload() {
@@ -80,7 +95,6 @@ class App extends Component {
         )}
       </div>
     )
-    //console.log(this.state.grid)
 
     return (
       <div>
@@ -92,6 +106,8 @@ class App extends Component {
         <button onClick={this.fetchClear}>Clear</button>
         <button onClick={this.fetchGlider}>Glider</button>
         <button onClick={this.fetchReload}>Reload</button>
+        <button onClick={this.runSimulation}>Run</button>
+        <button onClick={this.stopSimulation}>Stop</button>
       </div>
     )
   }
